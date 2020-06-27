@@ -1,5 +1,7 @@
 # gokrazy/stat
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/gokrazy/stat)](https://goreportcard.com/report/github.com/gokrazy/stat)
+
 `gokrazy/stat` is a program to visualize resource usage, producing output that
 looks very similar to [Dag Wieers’s
 `dstat`](https://github.com/dstat-real/dstat) default output.
