@@ -95,10 +95,10 @@ func printStats() error {
 	header := func() {
 		const blue = "\033[1;34m"
 		fmt.Printf(blue + "usr sys idl wai stl | ")
-		fmt.Printf("_read _writ | ")
-		fmt.Printf("_int_ _csw_ | ")
-		fmt.Printf("_recv _send | ")
-		fmt.Printf("_used _free _buff _cach\n")
+		fmt.Printf(" read  writ | ")
+		fmt.Printf(" int   csw  | ")
+		fmt.Printf(" recv  send | ")
+		fmt.Printf(" used  free  buff  cach\n")
 	}
 	parts := make([]string, len(modules))
 	files := make(map[string]*os.File)
