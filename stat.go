@@ -112,6 +112,12 @@ func (c Col) HTML() string {
 	})
 }
 
+func (c Col) RenderCustom(colorFunc func(col, text string) string) string {
+	return c.colorize(func(col, text string) string {
+		return colorFunc(col, text)
+	})
+}
+
 func (c Col) colorize(color func(col, text string) string) string {
 	switch c.Type {
 	case ColPercentage:
