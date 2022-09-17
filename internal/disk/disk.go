@@ -21,7 +21,7 @@ func (s *Stats) FileContents() []string {
 	return []string{"/proc/diskstats"}
 }
 
-var diskfilterRe = regexp.MustCompile(`^([hsv]d[a-z]+\d+|cciss/c\d+d\d+p\d+|dm-\d+|md\d+|mmcblk\d+p\d+|VxVM\d+)$`)
+var diskfilterRe = regexp.MustCompile(`^([hsv]d[a-z]+\d+|cciss/c\d+d\d+p\d+|dm-\d+|md\d+|loop\d+p\d+|nvme\d+n\d+p\d+|mmcblk\d+p\d+|VxVM\d+)$`)
 
 func (s *Stats) process(contents map[string][]byte) {
 	s.old = s.cur
