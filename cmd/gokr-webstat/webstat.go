@@ -21,6 +21,7 @@ import (
 	"github.com/gokrazy/stat/internal/mem"
 	"github.com/gokrazy/stat/internal/net"
 	"github.com/gokrazy/stat/internal/sys"
+	"github.com/gokrazy/stat/internal/thermal"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -37,38 +38,13 @@ func formatCols(cols []stat.Col) string {
 
 func serveStats() error {
 	var listen = flag.String("listen", ":6618", "[host]:port to serve HTML on")
+	var thermalFlag = flag.Bool("thermal", false, "system temperature sensors")
 	flag.Parse()
+
 	type processAndFormatter interface {
 		ProcessAndFormat(map[string][]byte) []stat.Col
 	}
-	modules := []processAndFormatter{
-		&cpu.Stats{},
-		&disk.Stats{},
-		&sys.Stats{},
-		&net.Stats{},
-		&mem.Stats{},
-	}
-	parts := make([]string, len(modules))
-	files := make(map[string]*os.File)
-	for _, mod := range modules {
-		// When a stats module implements the FileContents() interface, we
-		// ensure all returned file contents are read and passed to
-		// ProcessAndFormat.
-		fc, ok := mod.(interface{ FileContents() []string })
-		if !ok {
-			continue
-		}
-		for _, f := range fc.FileContents() {
-			if _, ok := files[f]; ok {
-				continue // already requested
-			}
-			fl, err := os.Open(f)
-			if err != nil {
-				return err
-			}
-			files[f] = fl
-		}
-	}
+
 	headers := []string{
 		"usr",
 		"sys",
@@ -90,6 +66,50 @@ func serveStats() error {
 		"_buff",
 		"_cach",
 	}
+
+	var modules []processAndFormatter
+	if *thermalFlag {
+		modules = []processAndFormatter{
+			&cpu.Stats{},
+			&disk.Stats{},
+			&sys.Stats{},
+			&net.Stats{},
+			&mem.Stats{},
+			&thermal.Stats{},
+		}
+		headers = append(headers, "_tz")
+	} else {
+		modules = []processAndFormatter{
+			&cpu.Stats{},
+			&disk.Stats{},
+			&sys.Stats{},
+			&net.Stats{},
+			&mem.Stats{},
+		}
+	}
+
+	parts := make([]string, len(modules))
+	files := make(map[string]*os.File)
+	for _, mod := range modules {
+		// When a stats module implements the FileContents() interface, we
+		// ensure all returned file contents are read and passed to
+		// ProcessAndFormat.
+		fc, ok := mod.(interface{ FileContents() []string })
+		if !ok {
+			continue
+		}
+		for _, f := range fc.FileContents() {
+			if _, ok := files[f]; ok {
+				continue // already requested
+			}
+			fl, err := os.Open(f)
+			if err != nil {
+				return err
+			}
+			files[f] = fl
+		}
+	}
+
 	statusTmpl, err := template.New("").Parse(statusTmpl)
 	if err != nil {
 		return err
