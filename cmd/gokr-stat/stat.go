@@ -20,6 +20,7 @@ import (
 	"github.com/gokrazy/stat/internal/mem"
 	"github.com/gokrazy/stat/internal/net"
 	"github.com/gokrazy/stat/internal/sys"
+	"github.com/gokrazy/stat/internal/thermal"
 )
 
 func formatCols(cols []stat.Col) string {
@@ -59,6 +60,7 @@ func terminalSize() (*window, error) {
 }
 
 func printStats() error {
+	var thermalFlag = flag.Bool("thermal", false, "system temperature sensors")
 	flag.Parse()
 
 	ts, err := terminalSize()
@@ -85,21 +87,42 @@ func printStats() error {
 	type processAndFormatter interface {
 		ProcessAndFormat(map[string][]byte) []stat.Col
 	}
-	modules := []processAndFormatter{
-		&cpu.Stats{},
-		&disk.Stats{},
-		&sys.Stats{},
-		&net.Stats{},
-		&mem.Stats{},
+
+	var modules []processAndFormatter
+
+	if *thermalFlag {
+		modules = []processAndFormatter{
+			&cpu.Stats{},
+			&disk.Stats{},
+			&sys.Stats{},
+			&net.Stats{},
+			&mem.Stats{},
+			&thermal.Stats{},
+		}
+	} else {
+		modules = []processAndFormatter{
+			&cpu.Stats{},
+			&disk.Stats{},
+			&sys.Stats{},
+			&net.Stats{},
+			&mem.Stats{},
+		}
 	}
+
 	header := func() {
 		const blue = "\033[1;34m"
 		fmt.Printf(blue + "usr sys idl wai stl | ")
 		fmt.Printf(" read  writ | ")
 		fmt.Printf(" int   csw  | ")
 		fmt.Printf(" recv  send | ")
-		fmt.Printf(" used  free  buff  cach\n")
+		if *thermalFlag {
+			fmt.Printf(" used  free  buff  cach | ")
+			fmt.Printf(" tz0\n")
+		} else {
+			fmt.Printf(" used  free  buff  cach\n")
+		}
 	}
+
 	parts := make([]string, len(modules))
 	files := make(map[string]*os.File)
 	for _, mod := range modules {
