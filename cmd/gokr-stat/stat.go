@@ -117,7 +117,7 @@ func printStats() error {
 		fmt.Printf(" recv  send | ")
 		if *thermalFlag {
 			fmt.Printf(" used  free  buff  cach | ")
-			fmt.Printf(" tz0\n")
+			fmt.Printf(" cpu\n")
 		} else {
 			fmt.Printf(" used  free  buff  cach\n")
 		}

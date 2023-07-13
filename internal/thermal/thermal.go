@@ -8,7 +8,7 @@ import (
 )
 
 type reading struct {
-	thermalZone uint64
+	temp uint64
 }
 
 type Stats struct {
@@ -28,12 +28,12 @@ func (s *Stats) process(contents map[string][]byte) {
 	}
 
 	therm := strings.TrimSpace(line)
-	s.cur.thermalZone = must.Uint64(therm)
+	s.cur.temp = must.Uint64(therm)
 }
 
 func (s *Stats) ProcessAndFormat(contents map[string][]byte) []stat.Col {
 	s.process(contents)
 	return []stat.Col{
-		{Type: stat.ColPercentage, ValFloat64: float64(s.cur.thermalZone) / 1000, Width: 3, Scale: 34},
+		{Type: stat.ColPercentage, ValFloat64: float64(s.cur.temp) / 1000, Width: 3, Scale: 34},
 	}
 }
