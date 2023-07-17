@@ -15,12 +15,7 @@ import (
 	"unsafe"
 
 	"github.com/gokrazy/stat"
-	"github.com/gokrazy/stat/internal/cpu"
-	"github.com/gokrazy/stat/internal/disk"
-	"github.com/gokrazy/stat/internal/mem"
-	"github.com/gokrazy/stat/internal/net"
-	"github.com/gokrazy/stat/internal/sys"
-	"github.com/gokrazy/stat/internal/thermal"
+	"github.com/gokrazy/stat/internal/statflag"
 )
 
 func formatCols(cols []stat.Col) string {
@@ -60,7 +55,7 @@ func terminalSize() (*window, error) {
 }
 
 func printStats() error {
-	var thermalFlag = flag.Bool("thermal", false, "system temperature sensors")
+	var enabledModules = flag.String("modules", "cpu,disk,sys,net,mem", "comma-separated list of modules to show. known modules: cpu,disk,sys,net,mem,thermal")
 	flag.Parse()
 
 	ts, err := terminalSize()
@@ -84,30 +79,7 @@ func printStats() error {
 		}
 	}()
 
-	type processAndFormatter interface {
-		ProcessAndFormat(map[string][]byte) []stat.Col
-	}
-
-	var modules []processAndFormatter
-
-	if *thermalFlag {
-		modules = []processAndFormatter{
-			&cpu.Stats{},
-			&disk.Stats{},
-			&sys.Stats{},
-			&net.Stats{},
-			&mem.Stats{},
-			&thermal.Stats{},
-		}
-	} else {
-		modules = []processAndFormatter{
-			&cpu.Stats{},
-			&disk.Stats{},
-			&sys.Stats{},
-			&net.Stats{},
-			&mem.Stats{},
-		}
-	}
+	modules, hasThermal := statflag.ModulesFromFlag(*enabledModules)
 
 	header := func() {
 		const blue = "\033[1;34m"
@@ -115,7 +87,7 @@ func printStats() error {
 		fmt.Printf(" read  writ | ")
 		fmt.Printf(" int   csw  | ")
 		fmt.Printf(" recv  send | ")
-		if *thermalFlag {
+		if hasThermal {
 			fmt.Printf(" used  free  buff  cach | ")
 			fmt.Printf(" cpu\n")
 		} else {

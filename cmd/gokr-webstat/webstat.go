@@ -16,12 +16,7 @@ import (
 	"time"
 
 	"github.com/gokrazy/stat"
-	"github.com/gokrazy/stat/internal/cpu"
-	"github.com/gokrazy/stat/internal/disk"
-	"github.com/gokrazy/stat/internal/mem"
-	"github.com/gokrazy/stat/internal/net"
-	"github.com/gokrazy/stat/internal/sys"
-	"github.com/gokrazy/stat/internal/thermal"
+	"github.com/gokrazy/stat/internal/statflag"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -38,12 +33,8 @@ func formatCols(cols []stat.Col) string {
 
 func serveStats() error {
 	var listen = flag.String("listen", ":6618", "[host]:port to serve HTML on")
-	var thermalFlag = flag.Bool("thermal", false, "system temperature sensors")
+	var enabledModules = flag.String("modules", "cpu,disk,sys,net,mem", "comma-separated list of modules to show. known modules: cpu,disk,sys,net,mem,thermal")
 	flag.Parse()
-
-	type processAndFormatter interface {
-		ProcessAndFormat(map[string][]byte) []stat.Col
-	}
 
 	headers := []string{
 		"usr",
@@ -67,25 +58,10 @@ func serveStats() error {
 		"_cach",
 	}
 
-	var modules []processAndFormatter
-	if *thermalFlag {
-		modules = []processAndFormatter{
-			&cpu.Stats{},
-			&disk.Stats{},
-			&sys.Stats{},
-			&net.Stats{},
-			&mem.Stats{},
-			&thermal.Stats{},
-		}
+	modules, hasThermal := statflag.ModulesFromFlag(*enabledModules)
+
+	if hasThermal {
 		headers = append(headers, "_tz")
-	} else {
-		modules = []processAndFormatter{
-			&cpu.Stats{},
-			&disk.Stats{},
-			&sys.Stats{},
-			&net.Stats{},
-			&mem.Stats{},
-		}
 	}
 
 	parts := make([]string, len(modules))
