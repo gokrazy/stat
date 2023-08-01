@@ -17,6 +17,10 @@ type Stats struct {
 	old, cur reading
 }
 
+func (s *Stats) Headers() []string {
+	return []string{" read", " writ"}
+}
+
 func (s *Stats) FileContents() []string {
 	return []string{"/proc/diskstats"}
 }

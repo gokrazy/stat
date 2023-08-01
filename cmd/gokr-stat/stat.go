@@ -79,19 +79,21 @@ func printStats() error {
 		}
 	}()
 
-	modules, hasThermal := statflag.ModulesFromFlag(*enabledModules)
+	modules, err := statflag.ModulesFromFlag(*enabledModules)
+	if err != nil {
+		return err
+	}
 
 	header := func() {
 		const blue = "\033[1;34m"
-		fmt.Printf(blue + "usr sys idl wai stl | ")
-		fmt.Printf(" read  writ | ")
-		fmt.Printf(" int   csw  | ")
-		fmt.Printf(" recv  send | ")
-		if hasThermal {
-			fmt.Printf(" used  free  buff  cach | ")
-			fmt.Printf(" cpu\n")
-		} else {
-			fmt.Printf(" used  free  buff  cach\n")
+		fmt.Printf("%s", blue)
+		for idx, mod := range modules {
+			headers := mod.Headers()
+			suffix := " | "
+			if idx == len(modules)-1 {
+				suffix = "\n" // last module
+			}
+			fmt.Printf("%s%s", strings.Join(headers, " "), suffix)
 		}
 	}
 

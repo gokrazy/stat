@@ -16,6 +16,10 @@ type Stats struct {
 	old, cur reading
 }
 
+func (s *Stats) Headers() []string {
+	return []string{" recv", " send"}
+}
+
 func (s *Stats) FileContents() []string {
 	return []string{"/proc/net/dev"}
 }

@@ -15,6 +15,10 @@ type Stats struct {
 	cur reading
 }
 
+func (s *Stats) Headers() []string {
+	return []string{"cpu"}
+}
+
 func (s *Stats) FileContents() []string {
 	return []string{"/sys/class/thermal/thermal_zone0/temp"}
 }

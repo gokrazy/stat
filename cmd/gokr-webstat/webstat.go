@@ -36,32 +36,18 @@ func serveStats() error {
 	var enabledModules = flag.String("modules", "cpu,disk,sys,net,mem", "comma-separated list of modules to show. known modules: cpu,disk,sys,net,mem,thermal")
 	flag.Parse()
 
-	headers := []string{
-		"usr",
-		"sys",
-		"idl",
-		"wai",
-		"stl",
-
-		"_read",
-		"_writ",
-
-		"_int_",
-		"_csw_",
-
-		"_recv",
-		"_send",
-
-		"_used",
-		"_free",
-		"_buff",
-		"_cach",
+	modules, err := statflag.ModulesFromFlag(*enabledModules)
+	if err != nil {
+		return err
 	}
 
-	modules, hasThermal := statflag.ModulesFromFlag(*enabledModules)
-
-	if hasThermal {
-		headers = append(headers, "_tz")
+	var headers []string
+	for _, mod := range modules {
+		hdrs := mod.Headers()
+		for idx, h := range hdrs {
+			hdrs[idx] = strings.ReplaceAll(h, " ", "_")
+		}
+		headers = append(headers, hdrs...)
 	}
 
 	parts := make([]string, len(modules))

@@ -18,6 +18,10 @@ type Stats struct {
 	old, cur reading
 }
 
+func (s *Stats) Headers() []string {
+	return []string{" used", " free", " buff", " cach"}
+}
+
 func (s *Stats) FileContents() []string {
 	return []string{"/proc/meminfo"}
 }
